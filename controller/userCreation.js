@@ -4,9 +4,12 @@ const jwt = require('jsonwebtoken');
 
 const createUser = async (req, res) =>{
     try {
-        const { first_name, last_name, email, phone_number, password } = req.body;
+        const { user_Id, first_name, last_name, email, phone_number, password } = req.body;
 
         // Validate required fields
+        if (!user_Id || user_Id.trim().length === 0 ){
+            return res.status(400).json({error: 'User ID is required'})
+        }
         if (!first_name || first_name.trim().length === 0) {
             return res.status(400).json({error: 'First name is required'})
         }
@@ -20,6 +23,15 @@ const createUser = async (req, res) =>{
             return res.status(400).json({error: 'Invalid phone number'})
         }
 
+        // Check if user ID already exists
+        // const existingUser = await pool.query(
+        //     'SELECT id FROM users WHERE id = ?',
+        //     [user_Id]
+        // );
+        // if (existingUser.length > 0) {
+        //     return res.status(400).json({ error: 'User ID already exists' });
+        // }
+
         // Generate salt and hash password
         const salt = await bcrypt.genSalt(10);
         const passwordHash = await bcrypt.hash(password, salt);
@@ -27,8 +39,8 @@ const createUser = async (req, res) =>{
         // Insert user into the database
         const connection = await pool.getConnection();
         const [results] = await connection.query(
-            'INSERT INTO users (first_name, last_name, email, phone_number, password_salt, password_hash) VALUES (?, ?, ?, ?, ?, ?)',
-            [first_name, last_name, email, phone_number, salt, passwordHash]
+            'INSERT INTO users (id, first_name, last_name, email, phone_number, password_salt, password_hash) VALUES (?, ?, ?, ?, ?, ?, ?)',
+            [user_Id, first_name, last_name, email, phone_number, salt, passwordHash]
         );
 
         //generate jwt token
@@ -42,14 +54,14 @@ const createUser = async (req, res) =>{
     }
 }
 //validate mail phone number with regular expressions
-function isValidateEmail(email) {
-    const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
-    return emailRegex.test(email);
-}
-
-function isValidPhoneNumber(phone_number) {
-    const phoneNumberRegex = /^\d{10}$/;
-    return phoneNumberRegex.test(phone_number);
-}
+// function isValidateEmail(email) {
+//     const emailRegex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
+//     return emailRegex.test(email);
+// }
+//
+// function isValidPhoneNumber(phone_number) {
+//     const phoneNumberRegex = /^\d{10}$/;
+//     return phoneNumberRegex.test(phone_number);
+// }
 
 module.exports =createUser;
