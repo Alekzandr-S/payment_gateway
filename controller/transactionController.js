@@ -93,7 +93,7 @@ async function transaction(req, res) {
 
         //Create transaction in db
         await pool.query(
-            'INSERT INTO transactions(user_id, amount)' +
+            'INSERT INTO transactions(id, amount)' +
             'VALUES(?,?)',
                 [transactionId, amount]
         );
